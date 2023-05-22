@@ -68,32 +68,33 @@ async def create_state(request:Request):
     
 @app.put("/settings", status_code=201)
 async def create_and_update_settings(request:Request):
-    sett = await request.json()
+    sett2 = await request.json()
     data = await db["settings"].find().to_list(1)
-    global temp 
-    global lamp
-    global duration
-    temp=sett["user_temp"]
-    lamp=sett["user_lamp"]
-    duration=sett["lamp_duration"]
-    global lamp_pref
-    if lamp=="sunset":
-        lamp_pref=getsunset()
-    else:
-        lamp_pref=datetime.strptime(lamp, "%H:%M:%S")
+
+    mod={}
+    mod["user_temp"]=sett2["user_temp"]
     
-    duration=lamp_pref + parse_time(duration)
 
-    user_obj = {
-        "user_temp":temp,
-        "user_lamp":str(lamp_pref.time()),
-        "duration_off":str(duration.time())
+    if sett2["user_lamp"]=="sunset":
+        time=getsunset()
+    else:
+        time=sett2["user_lamp"]
+    mod["user_lamp"]=(datetime.now().date()).strftime("%Y-%m-%dT")+time
+    mod["lamp_time_off"]=((datetime.strptime(mod["user_lamp"],'%Y-%m-%dT%H:%M:%S')+parse_time(sett2["lamp_duration"])).strftime('%Y-%m-%dT%H:%M:%S'))
 
-    }
-    new_user= await db["settings"].insert_one(user_obj)
-    created_user= await db["settings"].find_one({"_id":new_user.inserted_id})
-
-    return created_user
+    if len(data)==0:
+         new_sett = await db["settings"].insert_one(mod)
+         patched_sett = await db["settings"].find_one({"_id": new_sett.inserted_id })
+         return patched_sett
+    else:
+        id=data[0]["_id"]
+        updated_sett= await db["settings"].update_one({"_id":id},{"$set": mod})
+        patched_sett = await db["settings"].find_one({"_id": id})
+        if updated_sett.modified_count>=1: 
+            return patched_sett
+    raise HTTPException(status_code=400,detail="Issue")
+    
+    
 
 @app.get("/graph")
 async def get_graph(request: Request,size:int):
@@ -113,10 +114,10 @@ async def get_state():
 
     currenttime= datetime.strptime(datetime.strftime(datetime.now()+ timedelta(hours=-5), '%H:%M:%S'),'%H:%M:%S')
     usertime=datetime.strptime(currentsett[0]["user_lamp"],'%H:%M:%S')
-    time_off=datetime.strptime(currentsett[0]["duration_off"],'%H:%M:%S')
+    time_off=datetime.strptime(currentsett[0]["light_time_off"],'%H:%M:%S')
 
     fan = ((float(currentstate[0]["temperature"])>float(currentsett[0]["user_temp"])) and distsens)
     light = (currenttime>usertime) and (distsens) and (currenttime<time_off)
 
-    state={"fan":fan,"light":light}
-    return state
+    cstate={"fan":fan,"light":light}
+    return cstate
