@@ -15,7 +15,7 @@ load_dotenv()
 app = FastAPI()
 
 origins=[
-    "http://localhost:8000",
+    "https://al-ecse3038-project.onrender.com",
     "https://simple-smart-hub-client.netlify.app"]
 
 app.add_middleware(
@@ -56,10 +56,10 @@ def getsunset():
 
 @app.post("/api/state",status_code=201)
 async def create_state(request:Request):
-    created=await request.json()
-    created["datetime"]=(datetime.now()+timedelta(hours=-5)).strftime('%Y-%m-%dT%H:%M:%S')
+    createdstate=await request.json()
+    createdstate["date_time"]=(datetime.now()+timedelta(hours=-5)).strftime('%Y-%m-%dT%H:%M:%S')
 
-    new= await db["state"].insert_one(created)
+    new= await db["state"].insert_one(createdstate)
     updated = await db["state"].find_one({"_id":new.inserted_id})
 
     if new.acknowledged == True:
