@@ -9,7 +9,7 @@
 #define lightsw 23
 #define fansw 22
 #define distsens 3
-#define tempsens 2
+//#define tempsens 2
 
 OneWire oneWire(tempsens);
 DallasTemperaturesensors(&oneWire);
@@ -20,7 +20,7 @@ void setup() {
   pinMode(lightsw,OUTPUT);
   pinMode(fansw,OUTPUT);
   pinMode(distsens,INPUT);
-  pinMode(tempsens,INPUT);
+  //pinMode(tempsens,INPUT);
   // WiFi_SSID and WIFI_PASS should be stored in the env.h
   WiFi.begin(WIFI_SSID, WIFI_PASS,6);
 
@@ -53,7 +53,7 @@ void loop() {
       //http.addHeader("Content-length", "76");
 
       // Serialise JSON object into a string to be sent to the API
-      StaticJsonDocument<150> doc;
+      StaticJsonDocument<1000> doc;
       String httpRequestData;
       
         //switchonoff(i);
@@ -66,7 +66,7 @@ void loop() {
       Serial.println(digitalRead(distsens));
 
         doc["temperature"] = sensors.getTempCByIndex(0);
-        doc["distance"] = digitalRead(distsens);
+        doc["presence"] = digitalRead(distsens);
         //doc["light_switch_3"] = ledonoff[i][2];
   
       serializeJson(doc, httpRequestData);
@@ -114,7 +114,7 @@ void loop() {
   }
    http.end();
 
-  StaticJsonDocument<192> doc;
+  StaticJsonDocument<1000> doc;
 
   DeserializationError error = deserializeJson(doc, http_response);
   if (error){
@@ -123,8 +123,8 @@ void loop() {
     return;
       }
 
-      bool fanswt =doc["light_switch_1"];
-      bool lightswt =doc["light_switch_2"];
+      bool fanswt =doc["fan"];
+      bool lightswt =doc["light"];
       //digitalWrite(fanswitch,temperature);
       //digitalWrite(lightswitch,light);
       Serial.println("");
