@@ -92,17 +92,17 @@ async def create_and_update_settings(request:Request):
         patched_sett = await db["settings"].find_one({"_id": id})
         if updated_sett.modified_count>=1: 
             return patched_sett
-    raise HTTPException(status_code=400,detail="Issue")
+    raise HTTPException(status_code=400,detail="Bad request")
     
     
 
 @app.get("/graph")
-async def get_graph(request: Request,size:int):
+async def get_graph(request:Request,size:int):
     n=size
-    arrayofstates= await db["states"].find().sort("datetime",-1).to_list(n)
-    output=arrayofstates.reverse()
+    arrayofstates= await db["state"].find().sort("datetime",-1).to_list(n)
+    arrayofstates.reverse()
 
-    return output
+    return arrayofstates
  
 @app.get("/api/state")
 async def get_state():
