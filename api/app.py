@@ -57,7 +57,7 @@ def getsunset():
 @app.post("/api/state",status_code=201)
 async def create_state(request:Request):
     createdstate=await request.json()
-    createdstate["date_time"]=(datetime.now()+timedelta(hours=-5)).strftime('%Y-%m-%dT%H:%M:%S')
+    createdstate["datetime"]=(datetime.now()+timedelta(hours=-5)).strftime('%Y-%m-%dT%H:%M:%S')
 
     new= await db["state"].insert_one(createdstate)
     updated = await db["state"].find_one({"_id":new.inserted_id})
@@ -75,12 +75,12 @@ async def create_and_update_settings(request:Request):
     mod["user_temp"]=sett2["user_temp"]
     
 
-    if sett2["user_lamp"]=="sunset":
+    if sett2["user_light"]=="sunset":
         time=getsunset()
     else:
-        time=sett2["user_lamp"]
-    mod["user_lamp"]=(datetime.now().date()).strftime("%Y-%m-%dT")+time
-    mod["lamp_time_off"]=((datetime.strptime(mod["user_lamp"],'%Y-%m-%dT%H:%M:%S')+parse_time(sett2["lamp_duration"])).strftime('%Y-%m-%dT%H:%M:%S'))
+        time=sett2["user_light"]
+    mod["user_light"]=(datetime.now().date()).strftime("%Y-%m-%dT")+time
+    mod["light_time_off"]=((datetime.strptime(mod["user_light"],'%Y-%m-%dT%H:%M:%S')+parse_time(sett2["light_duration"])).strftime('%Y-%m-%dT%H:%M:%S'))
 
     if len(data)==0:
          new_sett = await db["settings"].insert_one(mod)
@@ -93,6 +93,8 @@ async def create_and_update_settings(request:Request):
         if updated_sett.modified_count>=1: 
             return patched_sett
     raise HTTPException(status_code=400,detail="Bad request")
+
+
     
     
 
@@ -113,7 +115,7 @@ async def get_state():
     distsens=currentstate[0]["presence"]
 
     currenttime= datetime.strptime(datetime.strftime(datetime.now()+ timedelta(hours=-5), '%H:%M:%S'),'%H:%M:%S')
-    usertime=datetime.strptime(currentsett[0]["user_lamp"],'%H:%M:%S')
+    usertime=datetime.strptime(currentsett[0]["user_light"],'%H:%M:%S')
     time_off=datetime.strptime(currentsett[0]["light_time_off"],'%H:%M:%S')
 
     fan = ((float(currentstate[0]["temperature"])>float(currentsett[0]["user_temp"])) and distsens)
