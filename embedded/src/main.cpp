@@ -9,9 +9,9 @@
 #define lightsw 23
 #define fansw 22
 #define distsens 3
-//#define tempsens 2
+#define oneWireBus 4
 
-OneWire oneWire(tempsens);
+OneWire oneWire(oneWireBus);
 DallasTemperaturesensors(&oneWire);
 
 
@@ -20,7 +20,7 @@ void setup() {
   pinMode(lightsw,OUTPUT);
   pinMode(fansw,OUTPUT);
   pinMode(distsens,INPUT);
-  //pinMode(tempsens,INPUT);
+  //pinMode(oneWireBus,INPUT);
   // WiFi_SSID and WIFI_PASS should be stored in the env.h
   WiFi.begin(WIFI_SSID, WIFI_PASS,6);
 
